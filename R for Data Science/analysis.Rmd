@@ -1,0 +1,41 @@
+---
+title: Gapminder analysis
+author: Ben Yang
+output: html_document
+---
+
+# Guided section
+
+```{r results='hide', message=F}
+library(tidyverse)
+```
+
+## 1. Read data
+
+```{r results='hide', message=F, warning=F}
+data <- read_csv('./gapminder_clean.csv')
+data <- data %>%
+    select(-1)
+```
+
+```{r}
+data
+```
+
+## 2. Scatterplot data of year 1962
+
+```{r}
+data1962 <- data %>%
+    filter(Year == 1962) %>%
+    select(gdpPercap, `CO2 emissions (metric tons per capita)`) %>%
+    drop_na()
+ggplot(data = data1962) +
+    geom_point(mapping = aes(
+        x = gdpPercap,
+        y = `CO2 emissions (metric tons per capita)`)) +
+    labs(x = "GDP per capita", y = "CO2 emissions per capita (metric tons)")
+```
+
+# Open section
+
+TODO
