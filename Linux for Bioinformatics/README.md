@@ -1,6 +1,8 @@
 # Linux CLI (Bash / Shell) for Bioinformatics
 
-This training is designed to test your basic fluency in the Linux environment and your ability to utilize google to complete challenges on the command line. It also has the added bonus of giving you a glimpse into the wide world of AWS. Please follow all instructions. Wherever you are asked to answer a question, answer it in a separate markdown file called `answers.md`. You will need to send your answers to Henry in order to complete this training. 
+**Note**: This training will require setting up a free AWS account, which requires a credit card that can do business in the U.S. If you do not have a card like this and cannot get one, let Henry know and he will help you.
+
+This training is designed to test your basic fluency in the Linux environment and your ability to utilize google to complete challenges on the command line. It also has the added bonus of giving you a glimpse into the wide world of AWS. Please follow all instructions. Wherever you are asked to answer a question, answer it in a separate markdown file called `answers.md`, which should be commited using `git` and pushed to your fork of the training repo on GitHub. Once you are done, let Henry know (and send anything needed to access your server). 
 
 For example, if I asked:
 >Q1. In the command `ls`, what do `l` and `s` stand for?
@@ -152,7 +154,7 @@ Version Info: This is the most recent version of salmon.
 
 7. Now that you're done, free up space by removing unused docker images.
 ```
-sudo docker system prune
+sudo docker system prune -a
 ```
 
 ## Set up a non-sudo user account
@@ -210,7 +212,7 @@ RNA-Seq data is commonly stored in the Sequencing Read Archive (SRA), a public d
 
 ## Wrap-up
 
-To complete the project, send Henry your `answers.md` file along with anything required to access your AWS server as `serveruser`. He will access the server, check your configuration and your `quant.sf` file -- and will certify completion of the miniproject if everything is correct.
+To complete the project, commit and push your `answers.md` and let Henry know (and send him anything required to access your AWS server as `serveruser`). He will access the server, check your configuration and your `quant.sf` file -- and will certify completion of the miniproject if everything is correct.
 
 
 
