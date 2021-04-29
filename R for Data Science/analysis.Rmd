@@ -18,23 +18,22 @@ data <- data %>%
     select(-1)
 ```
 
-```{r}
-data
-```
-
-## 2. Scatterplot data of year 1962
+## 2. Scatterplot of CO2 emissions and GDP in 1962
 
 ```{r}
 data1962 <- data %>%
     filter(Year == 1962) %>%
-    select(gdpPercap, `CO2 emissions (metric tons per capita)`) %>%
+    rename(co2Em = `CO2 emissions (metric tons per capita)`) %>%
+    select(gdpPercap, co2Em) %>%
     drop_na()
 ggplot(data = data1962) +
     geom_point(mapping = aes(
         x = gdpPercap,
-        y = `CO2 emissions (metric tons per capita)`)) +
+        y = co2Em)) +
     labs(x = "GDP per capita", y = "CO2 emissions per capita (metric tons)")
 ```
+
+## 3. Pearson correlation of CO2 emissions and GDP
 
 # Open section
 
