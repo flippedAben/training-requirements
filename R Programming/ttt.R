@@ -16,20 +16,16 @@ prompt_player <- function(prompt, check) {
 }
 
 is_valid_move <- function(raw_input, board) {
-    raw_move <- strsplit(raw_input, ',')[[1]]
-    raw_move <- sapply(raw_move, trimws)
+    raw_move <- sapply(strsplit(raw_input, ',')[[1]], trimws)
     if (length(raw_move) != 2) {
         return(FALSE)
     }
-    are_valid_integers = all(grepl("^[1-3]$", raw_move))
+    are_valid_integers <- all(grepl("^[1-3]$", raw_move))
     if (!are_valid_integers) {
         return(FALSE)
     }
-    move <- sapply(raw_move, as.numeric)
-    if (anyNA(move)) {
-        return(FALSE)
-    }
-    return(is.na(board[move[1], move[2]]))
+    move <- as.numeric(raw_move)
+    is.na(board[move[1], move[2]])
 }
 
 generate_computer_move <- function(board) {
@@ -45,32 +41,18 @@ generate_computer_move <- function(board) {
     c(row, col)
 }
 
+is_winning_line <- function(x) {
+    !anyNA(x) && length(unique(x)) == 1
+}
+
 is_game_over <- function(board) {
-    full_rows = apply(board, 1, function(x) !anyNA(x))
-    for (row in 1:nrow(board)) {
-        if (full_rows[row] & !is.na(row) & length(unique(board[row,])) == 1) {
-            cat(board[row,1], "won!")
-            return(TRUE)
-        }
-    }
-
-    full_cols = apply(board, 2, function(x) !anyNA(x))
-    for (col in 1:ncol(board)) {
-        if (full_cols[col] & !is.na(col) & length(unique(board[,col])) == 1) {
-            cat(board[1,col], "won!")
-            return(TRUE)
-        }
-    }
-
-    neg_diag = diag(board)
-    if (!anyNA(neg_diag) & length(unique(neg_diag)) == 1) {
-        cat(neg_diag[1], "won!")
-        return(TRUE)
-    }
-
-    pos_diag = diag(apply(board, 2, rev))
-    if (!anyNA(pos_diag) & length(unique(pos_diag)) == 1) {
-        cat(pos_diag[1], "won!")
+    neg_diag <- diag(board)
+    pos_diag <- diag(apply(board, 2, rev))
+    all_lines <- cbind(board, t(board), neg_diag, pos_diag)
+    line_wins <- apply(all_lines, 2, is_winning_line)
+    if (any(line_wins)) {
+        i <- which(line_wins)[1]
+        cat(all_lines[1, i], "won!")
         return(TRUE)
     }
 
@@ -82,24 +64,22 @@ is_game_over <- function(board) {
 }
 
 player_symbol <- prompt_player("x or o?", function(x) x != 'x' & x != 'o')
-computer_symbol = if (player_symbol == 'o') 'x' else 'o'
-player_turn = if (player_symbol == 'o') FALSE else TRUE
-board = matrix(nrow=3, ncol=3, byrow=TRUE)
+computer_symbol <- if (player_symbol == 'o') 'x' else 'o'
+player_turn <- if (player_symbol == 'o') FALSE else TRUE
+board <- matrix(nrow=3, ncol=3, byrow=TRUE)
 
 while (!is_game_over(board)) {
     if (player_turn) {
         raw_input <- prompt_player(
             "Choose a move. Type row,col (e.g. 1,1):",
              function(x) !is_valid_move(x, board))
-        move <- sapply(
-            strsplit(raw_input, ',')[[1]],
-            function(x) as.numeric(trimws(x)))
+        move <- as.numeric(sapply(strsplit(raw_input, ',')[[1]], trimws))
         board[move[1], move[2]] <- player_symbol
     } else {
         pos <- generate_computer_move(board)
         board[pos[1], pos[2]] <- computer_symbol
         cat("Computer chooses:", pos[1], ",", pos[2], "\n")
     }
-    player_turn = !player_turn
+    player_turn <- !player_turn
     print(board)
 }
