@@ -15,7 +15,8 @@ library(tidyverse)
 ```{r results='hide', message=F, warning=F}
 data <- read_csv('./gapminder_clean.csv')
 data <- data %>%
-    select(-1)
+    select(-1) %>%
+    rename(co2Em = `CO2 emissions (metric tons per capita)`)
 ```
 
 ## 2. Scatterplot of CO2 emissions and GDP in 1962
@@ -23,7 +24,6 @@ data <- data %>%
 ```{r}
 data1962 <- data %>%
     filter(Year == 1962) %>%
-    rename(co2Em = `CO2 emissions (metric tons per capita)`) %>%
     select(gdpPercap, co2Em) %>%
     drop_na()
 ggplot(data = data1962) +
@@ -34,6 +34,22 @@ ggplot(data = data1962) +
 ```
 
 ## 3. Pearson correlation of CO2 emissions and GDP
+
+```{r}
+cor.test(data1962 %>% pull(gdpPercap), data1962 %>% pull(co2Em))
+```
+
+## 4. Year of strongest correlation between CO2 emissions and GDP
+
+```{r}
+corrs <- data %>%
+    group_by(Year) %>%
+    select(Year, gdpPercap, co2Em) %>%
+    drop_na() %>%
+    summarise(corrleation = cor(gdpPercap, co2Em))
+lapply(corrs, max)
+```
+
 
 # Open section
 
