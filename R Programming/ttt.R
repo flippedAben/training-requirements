@@ -21,11 +21,12 @@ is_valid_move <- function(raw_input, board) {
     if (length(raw_move) != 2) {
         return(FALSE)
     }
-    move <- sapply(raw_move, as.numeric)
-    if (anyNA(move)) {
+    are_valid_integers = all(grepl("^[1-3]$", raw_move))
+    if (!are_valid_integers) {
         return(FALSE)
     }
-    if (!all(sapply(move, function(x) 1 <= x & x <= 3))) {
+    move <- sapply(raw_move, as.numeric)
+    if (anyNA(move)) {
         return(FALSE)
     }
     return(is.na(board[move[1], move[2]]))
