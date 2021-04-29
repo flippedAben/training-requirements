@@ -8,6 +8,7 @@ output: html_document
 
 ```{r results='hide', message=F}
 library(tidyverse)
+library(plotly)
 ```
 
 ## 1. Read data
@@ -16,38 +17,63 @@ library(tidyverse)
 data <- read_csv('./gapminder_clean.csv')
 data <- data %>%
     select(-1) %>%
-    rename(co2Em = `CO2 emissions (metric tons per capita)`)
+    rename(co2em = `CO2 emissions (metric tons per capita)`)
 ```
 
-## 2. Scatterplot of CO2 emissions and GDP in 1962
+## 2. Scatter plot of CO2 emissions and GDP in 1962
 
 ```{r}
 data1962 <- data %>%
     filter(Year == 1962) %>%
-    select(gdpPercap, co2Em) %>%
+    select(gdpPercap, co2em) %>%
     drop_na()
 ggplot(data = data1962) +
     geom_point(mapping = aes(
         x = gdpPercap,
-        y = co2Em)) +
+        y = co2em)) +
     labs(x = "GDP per capita", y = "CO2 emissions per capita (metric tons)")
 ```
 
 ## 3. Pearson correlation of CO2 emissions and GDP
 
 ```{r}
-cor.test(data1962 %>% pull(gdpPercap), data1962 %>% pull(co2Em))
+cor.test(data1962 %>% pull(gdpPercap), data1962 %>% pull(co2em))
 ```
 
 ## 4. Year of strongest correlation between CO2 emissions and GDP
 
-```{r}
+```{r results='hide', message=F}
 corrs <- data %>%
     group_by(Year) %>%
-    select(Year, gdpPercap, co2Em) %>%
+    select(Year, gdpPercap, co2em) %>%
     drop_na() %>%
-    summarise(corrleation = cor(gdpPercap, co2Em))
-lapply(corrs, max)
+    summarise(correlation = cor(gdpPercap, co2em))
+maxi <- lapply(corrs, max)
+```
+
+The coefficient is `r maxi$correlation` in the year `r maxi$Year`.
+
+## 5. Interactive scatter plot of CO2 emissiosn and GDP
+
+
+```{r}
+max_em_year_data <- data %>%
+    filter(Year == maxi$Year) %>%
+    select(gdpPercap, co2em, pop, continent, `Country Name`) %>%
+    drop_na()
+fig <- ggplot(data = max_em_year_data) +
+    geom_point(aes(
+        x = gdpPercap,
+        y = co2em,
+        size = pop,
+        color = continent,
+        text = paste("Country: ", `Country Name`,
+             "\nGDP: ", gdpPercap,
+             "\nCO2 emissions: ", co2em))) +
+    xlab("GDP per capita") +
+    ylab("CO2 emissions per capita (metric tons)") +
+    ggtitle(str_glue("GDP vs CO2 emissions per capita in ", maxi$Year))
+ggplotly(fig, tooltip = "text")
 ```
 
 
