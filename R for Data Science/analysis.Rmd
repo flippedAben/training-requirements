@@ -20,6 +20,7 @@ data <- data %>%
     rename(
        co2em = `CO2 emissions (metric tons per capita)`,
        popden = `Population density (people per sq. km of land area)`,
+       lifeExp = `Life expectancy at birth, total (years)`,
     )
 ```
 
@@ -89,7 +90,7 @@ ggplotly(fig, tooltip = "text")
 ```{r}
 data_popden <- data %>%
     group_by(`Country Name`) %>%
-    select(`Country Name`, popden, continent) %>%
+    select(`Country Name`, popden) %>%
     summarise(avg_popden = mean(popden, na.rm = TRUE)) %>%
     arrange(desc(avg_popden))
 num_countries_shown <- 20
@@ -105,5 +106,37 @@ ggplot(data = head(data_popden, n = num_countries_shown)) +
 The country with the highest average population density between 1962 and 2007
 is __Macao SAR, China__.
 
-## 4. Country with the greatest increase in life expectancy at birth
+## 4. Country with the greatest increase in life expectancy at birth since 1962
 
+```{r}
+data_lifeExp <- data %>%
+    select(`Country Name`, Year, lifeExp) %>%
+    drop_na() %>%
+    group_by(`Country Name`) %>%
+    filter(any(Year == 1962)) %>%
+    mutate(lifeExpSince1962 = lifeExp - lifeExp[Year == 1962]) %>%
+    ungroup()
+
+countries_highest <- data_lifeExp %>%
+    group_by(`Country Name`) %>%
+    mutate(lifeExpTotalChange = lifeExp[Year == 2007] - lifeExp[Year == 1962]) %>%
+    summarise(lifeExpChange = max(lifeExpTotalChange)) %>%
+    arrange(desc(lifeExpChange))
+
+cutoff_lifeExpChange <- min(head(countries_highest, n = 10)$lifeExpChange)
+
+data_lifeExpTop <- data_lifeExp %>%
+    group_by(`Country Name`) %>%
+    filter(lifeExp[Year == 2007] - lifeExp[Year == 1962] >= cutoff_lifeExpChange)
+
+fig <- ggplot(data = data_lifeExpTop) + 
+    geom_line(mapping = aes(
+        x = Year,
+        y = lifeExpSince1962,
+        color = `Country Name`)
+    ) +
+    ylab("Life expectancy at birth since 1962 (years)")
+ggplotly(fig)
+```
+
+The __Maldives__ had the highest increase in life expectancy at birth from 1962 to 2007.
