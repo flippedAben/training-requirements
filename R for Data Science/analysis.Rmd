@@ -17,7 +17,10 @@ library(plotly)
 data <- read_csv('./gapminder_clean.csv')
 data <- data %>%
     select(-1) %>%
-    rename(co2em = `CO2 emissions (metric tons per capita)`)
+    rename(
+       co2em = `CO2 emissions (metric tons per capita)`,
+       popden = `Population density (people per sq. km of land area)`,
+    )
 ```
 
 ## 2. Scatter plot of CO2 emissions and GDP in 1962
@@ -51,12 +54,11 @@ corrs <- data %>%
 maxi <- lapply(corrs, max)
 ```
 
-The coefficient is `r maxi$correlation` in the year `r maxi$Year`.
+The strongest correlation is `r maxi$correlation` in the year `r maxi$Year`.
 
-## 5. Interactive scatter plot of CO2 emissiosn and GDP
+## 5. Interactive scatter plot of CO2 emissions and GDP
 
-
-```{r}
+```{r, warning=F}
 max_em_year_data <- data %>%
     filter(Year == maxi$Year) %>%
     select(gdpPercap, co2em, pop, continent, `Country Name`) %>%
@@ -76,7 +78,32 @@ fig <- ggplot(data = max_em_year_data) +
 ggplotly(fig, tooltip = "text")
 ```
 
-
 # Open section
 
-TODO
+## 1. Relationship between continent and energy use
+
+## 2. Difference of imports between Europe and Asia
+
+## 3. Country with the highest average population density in 1962-2007
+
+```{r}
+data_popden <- data %>%
+    group_by(`Country Name`) %>%
+    select(`Country Name`, popden, continent) %>%
+    summarise(avg_popden = mean(popden, na.rm = TRUE)) %>%
+    arrange(desc(avg_popden))
+num_countries_shown <- 20
+ggplot(data = head(data_popden, n = num_countries_shown)) +
+    geom_bar(
+        mapping = aes(x = avg_popden, y = reorder(`Country Name`, avg_popden)),
+        stat = "identity") +
+    xlab("Average population density (people per sq. km of land)") +
+    ylab("") +
+    ggtitle(str_glue(num_countries_shown, " most population dense countries 1962-2007"))
+```
+
+The country with the highest average population density between 1962 and 2007
+is __Macao SAR, China__.
+
+## 4. Country with the greatest increase in life expectancy at birth
+
