@@ -83,16 +83,29 @@ ggplotly(fig, tooltip = "text")
 
 ## 1. Relationship between continent and energy use
 
-Can we perform ANOVA?
+### General visual
+
+Let's get a general idea of what we're looking at.
+
+```{r}
+data_energy <- data %>%
+    select(continent, energy) %>%
+    drop_na()
+ggplot(data_energy, mapping = aes(energy, color = continent)) +
+    geom_freqpoly(binwidth = 500)
+```
+
+It looks like we've got peaks at the same location for Africa, the Americas and
+Asia. Europe and Oceania are doing their own thing.
+
+The next question is _can we perform ANOVA_ and statistically determine
+relationships in the data. First, we'll check the assumptions.
 
 ### Normality
 
 Let's observe how normal the data is.
 
 ```{r}
-data_energy <- data %>%
-    select(continent, energy) %>%
-    drop_na()
 ggplot(data_energy, mapping = aes(sample = energy)) +
     facet_grid(continent ~ .) +
     stat_qq() +
@@ -100,9 +113,9 @@ ggplot(data_energy, mapping = aes(sample = energy)) +
 ```
 
 Africa, Oceania and Europe look approximately normal, but the others do not.
-Notice that we can apply the logarithm to the energy usage data because they
-are all positive. We get an empty tibble when filtering for energy values less
-than or equal to zero.
+Let's apply a data transformation. We get an empty tibble when filtering for
+energy values less than or equal to zero. So, it is safe to apply the logarithm
+to the energy usage data.
 
 ```{r}
 data_energy %>%
@@ -120,7 +133,9 @@ ggplot(data_energy_t, mapping = aes(sample = energy_transformed)) +
     stat_qq_line()
 ```
 
-The data look more normal now. Even though they are not perfect, we have a relatively large sample size for each group, except Oceania. Oceania, though, looks the most normal out of all of them.
+The data look more normal now. Oceania remains normal. The other groups' data
+are still not perfect, but it's okay since we have a relatively large sample
+size for them.
 
 ```{r}
 data_energy_t %>%
@@ -131,7 +146,7 @@ data_energy_t %>%
 ### Independence
 
 The data come from different continents and are at least 5 years apart. Assume
-the data are independent due to the space and time separation.
+the data are independent due to this space and time separation.
 
 ### Equality of variances
 
@@ -145,7 +160,8 @@ ggplot(data_energy_t) +
 ```
 
 The variances of the transformed data look roughly the same. Oceania stands out
-as having a smaller variance than the others. Despite this, we will continue.
+as having a smaller variance than the others. Asia looks like it has a larger
+variance. Despite this, we will continue.
 
 ### ANOVA
 
@@ -157,8 +173,9 @@ summary.aov(test_results)
 The p-value is less than 0.001. In our assumptions, we saw that the transformed
 data were not exactly normal, and their variances were not exactly equal.
 Taking that into account, I still think we can reject the null hypothesis. That
-is, we reject that the log of the group means are equal. Since the logarithm is
-a monotone increasing function, we also reject that the group means are equal.
+is, we can reject that the log of the group means are equal. Since the
+logarithm is a monotone increasing function, we can reject that the group means
+are equal.
 
 ### Post hoc testing via Tukey's
 
@@ -166,7 +183,8 @@ a monotone increasing function, we also reject that the group means are equal.
 TukeyHSD(test_results)
 ```
 
-For every pair except for (Asia, Americas) and (Oceania, Europe), we reject the null hypothesis that the logarithm of the energy usage means are the same.
+For every pair except for (Asia, Americas) and (Oceania, Europe), we reject the
+null hypothesis that the logarithm of the energy usage means are the same.
 
 ## 2. Difference of imports between Europe and Asia
 
