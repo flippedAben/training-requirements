@@ -6,12 +6,17 @@ output: html_document
 
 # Guided section
 
+We import some libraries we'll use later in this document.
+
 ```{r results='hide', message=F}
 library(tidyverse)
 library(plotly)
 ```
 
 ## 1. Read data
+
+We read the data given in a CSV file, discard the first column of indices, and
+rename some variables for convenience.
 
 ```{r results='hide', message=F, warning=F}
 data <- read_csv('./gapminder_clean.csv') %>%
@@ -21,10 +26,14 @@ data <- read_csv('./gapminder_clean.csv') %>%
        popden = `Population density (people per sq. km of land area)`,
        lifeExp = `Life expectancy at birth, total (years)`,
        energy = `Energy use (kg of oil equivalent per capita)`,
+       imports = `Imports of goods and services (% of GDP)`,
     )
 ```
 
 ## 2. Scatter plot of CO2 emissions and GDP in 1962
+
+We take rows of data from 1962 and look at their GDP and CO2 emissions. We
+throw away rows that have a NA value for either variable.
 
 ```{r}
 data1962 <- data %>%
@@ -38,13 +47,19 @@ ggplot(data = data1962) +
     labs(x = "GDP per capita", y = "CO2 emissions per capita (metric tons)")
 ```
 
-## 3. Pearson correlation of CO2 emissions and GDP
+## 3. Pearson correlation of CO2 emissions and GDP in 1962
 
 ```{r}
-cor.test(data1962 %>% pull(gdpPercap), data1962 %>% pull(co2em))
+cor.test(data1962$gdpPercap, data1962$co2em)
 ```
 
+Our p-value is less than 0.001. The correlation coefficient suggests that the
+two variables are positively associated.
+
 ## 4. Year of strongest correlation between CO2 emissions and GDP
+
+We group our data by year. For each group, we find the correlation. Lastly, we
+find which year has the maximum correlation.
 
 ```{r results='hide', message=F}
 corrs <- data %>%
@@ -58,6 +73,8 @@ maxi <- lapply(corrs, max)
 The strongest correlation is `r maxi$correlation` in the year `r maxi$Year`.
 
 ## 5. Interactive scatter plot of CO2 emissions and GDP
+
+We filter our data using the year we found in the previous section.
 
 ```{r, warning=F}
 max_em_year_data <- data %>%
@@ -81,11 +98,12 @@ ggplotly(fig, tooltip = "text")
 
 # Open section
 
+For sections requiring a statistics test, I use the standard `alpha = 0.95`.
+
 ## 1. Relationship between continent and energy use
 
-### General visual
-
-Let's get a general idea of what we're looking at.
+Let's get a general idea of what we're looking at. We filter our data down
+to the continents and energy usages. Here's a frequency graph of that.
 
 ```{r}
 data_energy <- data %>%
@@ -99,11 +117,12 @@ It looks like we've got peaks at the same location for Africa, the Americas and
 Asia. Europe and Oceania are doing their own thing.
 
 The next question is _can we perform ANOVA_ and statistically determine
-relationships in the data. First, we'll check the assumptions.
+relationships in the data. First, we check if the data satisfy the assumptions
+required to use ANOVA.
 
 ### Normality
 
-Let's observe how normal the data is.
+Let's observe how normal the data are with Q-Q plots.
 
 ```{r}
 ggplot(data_energy, mapping = aes(sample = energy)) +
@@ -133,9 +152,9 @@ ggplot(data_energy_t, mapping = aes(sample = energy_transformed)) +
     stat_qq_line()
 ```
 
-The data look more normal now. Oceania remains normal. The other groups' data
-are still not perfect, but it's okay since we have a relatively large sample
-size for them.
+Oceania remains normal. The other continents' data look more normal now. They
+still are not perfect, but it's okay since they have relatively large sample
+sizes, as the table below illustrates.
 
 ```{r}
 data_energy_t %>%
@@ -143,10 +162,12 @@ data_energy_t %>%
     summarise(count = n())
 ```
 
+We continue, assuming the data are approximately normal.
+
 ### Independence
 
-The data come from different continents and are at least 5 years apart. Assume
-the data are independent due to this space and time separation.
+The data come from different continents and are at least 5 years apart. Due to this, assume
+the data are independent and identically distributed.
 
 ### Equality of variances
 
@@ -161,7 +182,7 @@ ggplot(data_energy_t) +
 
 The variances of the transformed data look roughly the same. Oceania stands out
 as having a smaller variance than the others. Asia looks like it has a larger
-variance. Despite this, we will continue.
+variance. However, they don't look too equal. We proceed with caution.
 
 ### ANOVA
 
@@ -172,23 +193,134 @@ summary.aov(test_results)
 
 The p-value is less than 0.001. In our assumptions, we saw that the transformed
 data were not exactly normal, and their variances were not exactly equal.
-Taking that into account, I still think we can reject the null hypothesis. That
-is, we can reject that the log of the group means are equal. Since the
-logarithm is a monotone increasing function, we can reject that the group means
-are equal.
+Taking that into account, I decide to reject the null hypothesis. That is, we
+reject that the log of the group means are equal. Since the logarithm is a
+monotone increasing function, we can reject that the group means are equal.
 
 ### Post hoc testing via Tukey's
+
+We run Tukey's test to determine differences between pairs of continents.
 
 ```{r}
 TukeyHSD(test_results)
 ```
 
-For every pair except for (Asia, Americas) and (Oceania, Europe), we reject the
-null hypothesis that the logarithm of the energy usage means are the same.
+For every pair except for (Asia, Americas) and (Oceania, Europe), the p-value
+is less than 0.0001, so for those, we reject the null hypothesis that the
+logarithm of the energy usage means are the same. For the exceptional pairs, we
+retain the null hypothesis.
 
 ## 2. Difference of imports between Europe and Asia
 
+We filter our data to imports of goods and services in Europe and Asia. Let's take a look at a histogram.
+
+```{r}
+data_imports <- data %>%
+    filter(Year >= 1990 & continent %in% c('Europe', 'Asia')) %>%
+    select(continent, imports) %>%
+    drop_na()
+ggplot(data = data_imports) +
+    geom_histogram(
+        mapping = aes(x = imports, fill = continent),
+        position = 'identity',
+        alpha = 0.5,
+        binwidth = 10,
+    )
+```
+
+The peaks seem to line up, but Europe as a bunch more data points near the
+peaks, compared to Asia. At a glance, I would guess that the two continents
+have roughly the same imports of goods and services, measured in percent of
+GDP. Can we perform an unpaired t-test to check our guess? Let's check the
+assumptions.
+
+### Normality
+
+We have histograms above, but I find Q-Q plots easier to look at.
+```{r}
+ggplot(data_imports, mapping = aes(sample = imports)) +
+    facet_grid(continent ~ .) +
+    stat_qq() +
+    stat_qq_line()
+```
+
+It looks kind of normal, but can we do better with a data transformation?
+
+```{r}
+data_imports_t <- data_imports %>%
+    mutate(imports_t = sqrt(imports))
+ggplot(data_imports_t, mapping = aes(sample = imports_t)) +
+    facet_grid(continent ~ .) +
+    stat_qq() +
+    stat_qq_line()
+```
+
+The transformation helps a bit, but the data at the ends still do not fit the
+lines well. Let's proceed skeptically, assuming that the data are approximately
+normal.
+
+### Independence
+
+Europe and Asia are completely different regions of land. Assume each datum
+comes from only one of the continents.
+
+ We use the time argument again. The data are taken 5 years apart, so for each
+ group of data, assume that the data are independent and identically
+ distributed.
+
+### Outliers
+
+```{r}
+ggplot(data_imports_t) +
+    geom_boxplot(mapping = aes(imports_t, continent)) +
+    xlab("Square root of imports of goods and services (percent of GDP)") +
+    ylab("Continent")
+```
+
+We have our eyes on Welch's t-test, which is robust against unequal variances. For a normal unpaired t-test, we'd still be fine because the sample sizes are roughly equivalent.
+
+```{r}
+data_imports_t %>%
+    group_by(continent) %>%
+    summarise(count = n())
+```
+
+We see outliers on the Asia data, which may affect our results negatively.
+We continue anyways, acknowledging these shortcomings.
+
+### Welch's two sample t-test
+
+```{r}
+x <- data_imports_t %>% filter(continent == 'Europe')
+y <- data_imports_t %>% filter(continent == 'Asia')
+t.test(x$imports, y$imports)
+```
+
+Our p-value is 0.1776. I'm skeptical because we did not satisfy some of our
+parametric assumptions as much as I wanted. We run the nonparametric
+Mann-Whitney test for assurance.
+
+### Mann-Whitney U test
+
+```{r}
+wilcox.test(x$imports, y$imports)
+```
+
+Our p-value here is 0.7867. Both tests indicate that we can retain the null
+hypothesis. However the null hypothesis of the parametric and nonparametric
+tests are different. In this case, I retain the null hypothesis of the
+parametric test because the assumptions were not completely wrong, and the
+statement is stronger.
+
+That is, we retain the null hypothesis that square root of
+import means are the same. Because the square root function is monotone
+increasing, this is the same as saying the import means between Europe and Asia
+are the same.
+
 ## 3. Country with the highest average population density in 1962-2007
+
+We group the data by country and take the average population density across the
+years.
 
 ```{r}
 data_popden <- data %>%
@@ -210,6 +342,10 @@ The country with the highest average population density between 1962 and 2007
 is __Macao SAR, China__.
 
 ## 4. Country with the greatest increase in life expectancy at birth since 1962
+
+We group the data by country. In each group, we create a new column that tracks
+the change in life expectancy since 1962. The scatter plots shows this data for
+some of the top growers.
 
 ```{r}
 data_lifeExp <- data %>%
@@ -238,7 +374,7 @@ fig <- ggplot(data = data_lifeExpTop) +
         y = lifeExpSince1962,
         color = `Country Name`)
     ) +
-    ylab("Life expectancy at birth since 1962 (years)")
+    ylab("Change in life expectancy at birth since 1962 (years)")
 ggplotly(fig)
 ```
 
