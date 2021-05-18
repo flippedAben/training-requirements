@@ -1,19 +1,27 @@
 ---
 title: Gapminder analysis
 author: Ben Yang
-output: html_document
+output:
+    html_document:
+        theme: yeti
+        highlight: pygments
+        code_folding: hide
+        toc: true
+        toc_depth: 2
+        number_sections: true
+        fig_width: 7
+        fig_height: 6
+        df_print: paged
 ---
 
 # Guided section
 
-We import some libraries we'll use later in this document.
-
-```{r results='hide', message=F}
+```{r message=F}
 library(tidyverse)
 library(plotly)
 ```
 
-## 1. Read data
+## Read data
 
 We read the data given in a CSV file, discard the first column of indices, and
 rename some variables for convenience.
@@ -30,10 +38,11 @@ data <- read_csv('./gapminder_clean.csv') %>%
     )
 ```
 
-## 2. Scatter plot of CO2 emissions and GDP in 1962
+## Scatter plot of CO2 emissions and GDP in 1962
 
 We take rows of data from 1962 and look at their GDP and CO2 emissions. We
-throw away rows that have a NA value for either variable.
+throw away rows that have a NA value for either variable. Below is a scatter
+plot of this filtered data. Each dot represents a country.
 
 ```{r}
 data1962 <- data %>%
@@ -44,10 +53,12 @@ ggplot(data = data1962) +
     geom_point(mapping = aes(
         x = gdpPercap,
         y = co2em)) +
-    labs(x = "GDP per capita", y = "CO2 emissions per capita (metric tons)")
+    labs(title = "GDP vs CO2 emissions per capita in 1962",
+        x = "GDP per capita",
+        y = "CO2 emissions per capita (metric tons)")
 ```
 
-## 3. Pearson correlation of CO2 emissions and GDP in 1962
+## Pearson correlation of CO2 emissions and GDP in 1962
 
 ```{r}
 cor.test(data1962$gdpPercap, data1962$co2em)
@@ -56,7 +67,7 @@ cor.test(data1962$gdpPercap, data1962$co2em)
 Our p-value is less than 0.001. The correlation coefficient suggests that the
 two variables are positively associated.
 
-## 4. Year of strongest correlation between CO2 emissions and GDP
+## Year of strongest correlation between CO2 emissions and GDP
 
 We group our data by year. For each group, we find the correlation. Lastly, we
 find which year has the maximum correlation.
@@ -70,9 +81,9 @@ corrs <- data %>%
 maxi <- lapply(corrs, max)
 ```
 
-The strongest correlation is `r maxi$correlation` in the year `r maxi$Year`.
+The strongest correlation is __`r maxi$correlation`__ in the year __`r maxi$Year`__.
 
-## 5. Interactive scatter plot of CO2 emissions and GDP
+## Interactive scatter plot of CO2 emissions and GDP in the year with the highest correlation
 
 We filter our data using the year we found in the previous section.
 
@@ -100,7 +111,7 @@ ggplotly(fig, tooltip = "text")
 
 For sections requiring a statistics test, I use the standard `alpha = 0.95`.
 
-## 1. Relationship between continent and energy use
+## Relationship between continent and energy use
 
 Let's get a general idea of what we're looking at. We filter our data down
 to the continents and energy usages. Here's a frequency graph of that.
@@ -210,7 +221,7 @@ is less than 0.0001, so for those, we reject the null hypothesis that the
 logarithm of the energy usage means are the same. For the exceptional pairs, we
 retain the null hypothesis.
 
-## 2. Difference of imports between Europe and Asia
+## Difference of imports between Europe and Asia
 
 We filter our data to imports of goods and services in Europe and Asia. Let's take a look at a histogram.
 
@@ -317,7 +328,7 @@ import means are the same. Because the square root function is monotone
 increasing, this is the same as saying the import means between Europe and Asia
 are the same.
 
-## 3. Country with the highest average population density in 1962-2007
+## Country with the highest average population density in 1962-2007
 
 We group the data by country and take the average population density across the
 years.
@@ -341,7 +352,7 @@ ggplot(data = head(data_popden, n = num_countries_shown)) +
 The country with the highest average population density between 1962 and 2007
 is __Macao SAR, China__.
 
-## 4. Country with the greatest increase in life expectancy at birth since 1962
+## Country with the greatest increase in life expectancy at birth since 1962
 
 We group the data by country. In each group, we create a new column that tracks
 the change in life expectancy since 1962. The scatter plots shows this data for
