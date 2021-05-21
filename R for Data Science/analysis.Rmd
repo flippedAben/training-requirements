@@ -101,9 +101,9 @@ fig <- ggplot(data = max_em_year_data) +
         text = paste("Country: ", `Country Name`,
              "\nGDP: ", gdpPercap,
              "\nCO2 emissions: ", co2em))) +
-    xlab("GDP per capita") +
-    ylab("CO2 emissions per capita (metric tons)") +
-    ggtitle(str_glue("GDP vs CO2 emissions per capita in ", maxi$Year))
+    labs(title = str_glue("GDP vs CO2 emissions per capita in ", maxi$Year),
+        x = "GDP per capita",
+        y = "CO2 emissions per capita (metric tons)")
 ggplotly(fig, tooltip = "text")
 ```
 
@@ -121,7 +121,7 @@ data_energy <- data %>%
     select(continent, energy) %>%
     drop_na()
 ggplot(data_energy, mapping = aes(energy, color = continent)) +
-    geom_freqpoly(binwidth = 500)
+    geom_freqpoly(binwidth=700)
 ```
 
 It looks like we've got peaks at the same location for Africa, the Americas and
@@ -137,9 +137,10 @@ Let's observe how normal the data are with Q-Q plots.
 
 ```{r}
 ggplot(data_energy, mapping = aes(sample = energy)) +
-    facet_grid(continent ~ .) +
+    facet_wrap(continent ~ ., nrow = 2) +
     stat_qq() +
-    stat_qq_line()
+    stat_qq_line() +
+    theme(aspect.ratio = 1)
 ```
 
 Africa, Oceania and Europe look approximately normal, but the others do not.
@@ -158,9 +159,10 @@ Let's try the data transformation.
 data_energy_t <- data_energy %>%
     mutate(energy_transformed = log(energy))
 ggplot(data_energy_t, mapping = aes(sample = energy_transformed)) +
-    facet_grid(continent ~ .) +
+    facet_wrap(continent ~ ., nrow = 2) +
     stat_qq() +
-    stat_qq_line()
+    stat_qq_line() +
+    theme(aspect.ratio = 1)
 ```
 
 Oceania remains normal. The other continents' data look more normal now. They
@@ -177,8 +179,8 @@ We continue, assuming the data are approximately normal.
 
 ### Independence
 
-The data come from different continents and are at least 5 years apart. Due to this, assume
-the data are independent and identically distributed.
+The data come from different continents and are at least 5 years apart. Due to
+this, assume the data are independent and identically distributed.
 
 ### Equality of variances
 
@@ -187,8 +189,9 @@ How do the variances look?
 ```{r}
 ggplot(data_energy_t) +
     geom_boxplot(mapping = aes(energy_transformed, continent)) +
-    xlab("Log of energy usage (kg of oil equivalent per capita)") +
-    ylab("Continent")
+    labs(title = "Variances of log of energy usage per continent",
+        x = "Log of energy usage (kg of oil equivalent per capita)",
+        y = "Continent")
 ```
 
 The variances of the transformed data look roughly the same. Oceania stands out
@@ -223,7 +226,8 @@ retain the null hypothesis.
 
 ## Difference of imports between Europe and Asia
 
-We filter our data to imports of goods and services in Europe and Asia. Let's take a look at a histogram.
+We filter our data to imports of goods and services in Europe and Asia. Let's
+take a look at a histogram.
 
 ```{r}
 data_imports <- data %>%
@@ -248,11 +252,13 @@ assumptions.
 ### Normality
 
 We have histograms above, but I find Q-Q plots easier to look at.
+
 ```{r}
 ggplot(data_imports, mapping = aes(sample = imports)) +
-    facet_grid(continent ~ .) +
+    facet_wrap(continent ~ ., nrow = 1) +
     stat_qq() +
-    stat_qq_line()
+    stat_qq_line() +
+    theme(aspect.ratio = 1)
 ```
 
 It looks kind of normal, but can we do better with a data transformation?
@@ -261,9 +267,10 @@ It looks kind of normal, but can we do better with a data transformation?
 data_imports_t <- data_imports %>%
     mutate(imports_t = sqrt(imports))
 ggplot(data_imports_t, mapping = aes(sample = imports_t)) +
-    facet_grid(continent ~ .) +
+    facet_wrap(continent ~ ., nrow = 1) +
     stat_qq() +
-    stat_qq_line()
+    stat_qq_line() +
+    theme(aspect.ratio = 1)
 ```
 
 The transformation helps a bit, but the data at the ends still do not fit the
@@ -284,8 +291,9 @@ comes from only one of the continents.
 ```{r}
 ggplot(data_imports_t) +
     geom_boxplot(mapping = aes(imports_t, continent)) +
-    xlab("Square root of imports of goods and services (percent of GDP)") +
-    ylab("Continent")
+    labs(title = "Outliers in the square root of imports in Europe vs Asia",
+        x = "Square root of imports of goods and services (percent of GDP)",
+        y = "Continent")
 ```
 
 We have our eyes on Welch's t-test, which is robust against unequal variances. For a normal unpaired t-test, we'd still be fine because the sample sizes are roughly equivalent.
@@ -344,9 +352,9 @@ ggplot(data = head(data_popden, n = num_countries_shown)) +
     geom_bar(
         mapping = aes(x = avg_popden, y = reorder(`Country Name`, avg_popden)),
         stat = "identity") +
-    xlab("Average population density (people per sq. km of land)") +
-    ylab("") +
-    ggtitle(str_glue(num_countries_shown, " most population dense countries 1962-2007"))
+    labs(title = str_glue(num_countries_shown, " most population dense countries 1962-2007"),
+        x = "Average population density (people per sq. km of land)",
+        y = "Country")
 ```
 
 The country with the highest average population density between 1962 and 2007
@@ -355,7 +363,7 @@ is __Macao SAR, China__.
 ## Country with the greatest increase in life expectancy at birth since 1962
 
 We group the data by country. In each group, we create a new column that tracks
-the change in life expectancy since 1962. The scatter plots shows this data for
+the change in life expectancy since 1962. The following figure shows this data for
 some of the top growers.
 
 ```{r}
@@ -385,7 +393,9 @@ fig <- ggplot(data = data_lifeExpTop) +
         y = lifeExpSince1962,
         color = `Country Name`)
     ) +
-    ylab("Change in life expectancy at birth since 1962 (years)")
+    labs(title = "Increase in life expectancy of top 10 countries 1962-2007",
+        x = "Year",
+        y = "Change in life expectancy at birth since 1962 (years)")
 ggplotly(fig)
 ```
 
