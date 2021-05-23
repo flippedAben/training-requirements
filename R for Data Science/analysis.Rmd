@@ -114,22 +114,45 @@ For sections requiring a statistics test, I use the standard `alpha = 0.95`.
 ## Relationship between continent and energy use
 
 Let's get a general idea of what we're looking at. We filter our data down
-to the continents and energy usages. Here's a frequency graph of that.
+to the continents and energy usages.
 
 ```{r}
 data_energy <- data %>%
     select(continent, energy) %>%
     drop_na()
-ggplot(data_energy, mapping = aes(energy, color = continent)) +
-    geom_freqpoly(binwidth=700)
+ggplot(data = data_energy) +
+    facet_wrap(continent ~ .) +
+    geom_histogram(
+        mapping = aes(x = energy),
+        position = 'identity',
+        binwidth = 500,
+    ) +
+    labs(title = "Histograms of energy usage per continent 1962-2007",
+        x = "Energy use (kg of oil equivalent per capita)",
+        y = "Count"
+    )
 ```
 
-It looks like we've got peaks at the same location for Africa, the Americas and
-Asia. Europe and Oceania are doing their own thing.
+All of them except Oceania look right-skewed. Oceania's plot is quite small, so
+let's view it on it's own.
 
-The next question is _can we perform ANOVA_ and statistically determine
-relationships in the data. First, we check if the data satisfy the assumptions
-required to use ANOVA.
+```{r}
+ggplot(data = data_energy %>% filter(continent == 'Oceania')) +
+    geom_histogram(
+        mapping = aes(x = energy),
+        position = 'identity',
+        binwidth = 200,
+    ) +
+    labs(title = "Histogram of energy usage in Oceania 1962-2007",
+        x = "Energy use (kg of oil equivalent per capita)",
+        y = "Count"
+    )
+```
+
+We don't have a lot of data for Oceania, so it'll look blocky. I can't say much
+about it. The next question is _can we perform ANOVA_ and statistically
+determine relationships in the data. First, we check if the data satisfy the
+assumptions required to use ANOVA.
 
 ### Normality
 
@@ -140,7 +163,11 @@ ggplot(data_energy, mapping = aes(sample = energy)) +
     facet_wrap(continent ~ ., nrow = 2) +
     stat_qq() +
     stat_qq_line() +
-    theme(aspect.ratio = 1)
+    theme(aspect.ratio = 1) +
+    labs(title = "Q-Q plots of energy use per continent 1962-2007",
+        x = "Theoretical quantiles",
+        y = "Energy use (kg of oil equivalent per capita) quantiles"
+    )
 ```
 
 Africa, Oceania and Europe look approximately normal, but the others do not.
@@ -162,7 +189,11 @@ ggplot(data_energy_t, mapping = aes(sample = energy_transformed)) +
     facet_wrap(continent ~ ., nrow = 2) +
     stat_qq() +
     stat_qq_line() +
-    theme(aspect.ratio = 1)
+    theme(aspect.ratio = 1) +
+    labs(title = "Q-Q plots of log energy use per continent 1962-2007",
+        x = "Theoretical quantiles",
+        y = "Log of energy use (kg of oil equivalent per capita) quantiles"
+    )
 ```
 
 Oceania remains normal. The other continents' data look more normal now. They
@@ -240,6 +271,10 @@ ggplot(data = data_imports) +
         position = 'identity',
         alpha = 0.5,
         binwidth = 10,
+    ) +
+    labs(title = "Histograms of imports in Europe and Asia",
+        x = "Imports of goods and services (% of GDP)",
+        y = "Counts"
     )
 ```
 
@@ -258,7 +293,11 @@ ggplot(data_imports, mapping = aes(sample = imports)) +
     facet_wrap(continent ~ ., nrow = 1) +
     stat_qq() +
     stat_qq_line() +
-    theme(aspect.ratio = 1)
+    theme(aspect.ratio = 1) +
+    labs(title = "Q-Q plots of imports in Europe and Asia",
+        x = "Theoretical quantiles",
+        y = "Imports of goods and services (% of GDP) quantiles"
+    )
 ```
 
 It looks kind of normal, but can we do better with a data transformation?
@@ -270,7 +309,11 @@ ggplot(data_imports_t, mapping = aes(sample = imports_t)) +
     facet_wrap(continent ~ ., nrow = 1) +
     stat_qq() +
     stat_qq_line() +
-    theme(aspect.ratio = 1)
+    theme(aspect.ratio = 1) +
+    labs(title = "Q-Q plots of log imports in Europe and Asia",
+        x = "Theoretical quantiles",
+        y = "Log of imports of goods and services (% of GDP) quantiles"
+    )
 ```
 
 The transformation helps a bit, but the data at the ends still do not fit the
