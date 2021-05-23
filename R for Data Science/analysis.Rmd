@@ -274,7 +274,7 @@ ggplot(data = data_imports) +
     ) +
     labs(title = "Histograms of imports in Europe and Asia",
         x = "Imports of goods and services (% of GDP)",
-        y = "Counts"
+        y = "Count"
     )
 ```
 
