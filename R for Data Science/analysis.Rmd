@@ -379,29 +379,36 @@ import means are the same. Because the square root function is monotone
 increasing, this is the same as saying the import means between Europe and Asia
 are the same.
 
-## Country with the highest average population density in 1962-2007
+## Countries with the highest population density in 1962-2007
 
-We group the data by country and take the average population density across the
-years.
+For each available year, we list the 10 countries with the highest population
+densities.
 
-```{r}
+```{r, warning=F}
 data_popden <- data %>%
-    group_by(`Country Name`) %>%
-    select(`Country Name`, popden) %>%
-    summarise(avg_popden = mean(popden, na.rm = TRUE)) %>%
-    arrange(desc(avg_popden))
-num_countries_shown <- 20
-ggplot(data = head(data_popden, n = num_countries_shown)) +
-    geom_bar(
-        mapping = aes(x = avg_popden, y = reorder(`Country Name`, avg_popden)),
-        stat = "identity") +
-    labs(title = str_glue(num_countries_shown, " most population dense countries 1962-2007"),
-        x = "Average population density (people per sq. km of land)",
-        y = "Country")
+    group_by(Year) %>%
+    select(Year, `Country Name`, popden) %>%
+    drop_na() %>%
+    slice_max(n = 10, order_by = popden)
+fig <- ggplot(data = data_popden) +
+    geom_line(mapping = aes(
+        x = Year,
+        y = popden,
+        group = `Country Name`,
+        color = `Country Name`,
+        text = paste("Country: ", `Country Name`,
+             "\nDensity: ", popden,
+             "\nYear: ", Year))
+    ) +
+    labs(title = "10 most population dense countries per year 1962-2007",
+        x = "Year",
+        y = "Population density (people per sq. km of land area)"
+    )
+ggplotly(fig, tooltip = "text")
 ```
 
-The country with the highest average population density between 1962 and 2007
-is __Macao SAR, China__.
+The countries with the highest population densities within 1962 and 2007 are
+__Macao SAR, China__ and __Monaco__.
 
 ## Country with the greatest increase in life expectancy at birth since 1962
 
