@@ -27,7 +27,7 @@ We read the data given in a CSV file, discard the first column of indices, and
 rename some variables for convenience.
 
 ```{r results='hide', message=F, warning=F}
-data <- read_csv('./gapminder_clean.csv') %>%
+data <- read_csv("./gapminder_clean.csv") %>%
     select(-1) %>%
     rename(
        co2em = `CO2 emissions (metric tons per capita)`,
@@ -124,7 +124,7 @@ ggplot(data = data_energy) +
     facet_wrap(continent ~ .) +
     geom_histogram(
         mapping = aes(x = energy),
-        position = 'identity',
+        position = "identity",
         binwidth = 500,
     ) +
     labs(title = "Histograms of energy usage per continent 1962-2007",
@@ -137,10 +137,10 @@ All of them except Oceania look right-skewed. Oceania's plot is quite small, so
 let's view it on it's own.
 
 ```{r}
-ggplot(data = data_energy %>% filter(continent == 'Oceania')) +
+ggplot(data = data_energy %>% filter(continent == "Oceania")) +
     geom_histogram(
         mapping = aes(x = energy),
-        position = 'identity',
+        position = "identity",
         binwidth = 200,
     ) +
     labs(title = "Histogram of energy usage in Oceania 1962-2007",
@@ -262,13 +262,13 @@ take a look at a histogram.
 
 ```{r}
 data_imports <- data %>%
-    filter(Year >= 1990 & continent %in% c('Europe', 'Asia')) %>%
+    filter(Year >= 1990 & continent %in% c("Europe", "Asia")) %>%
     select(continent, imports) %>%
     drop_na()
 ggplot(data = data_imports) +
     geom_histogram(
         mapping = aes(x = imports, fill = continent),
-        position = 'identity',
+        position = "identity",
         alpha = 0.5,
         binwidth = 10,
     ) +
@@ -353,8 +353,8 @@ We continue anyways, acknowledging these shortcomings.
 ### Welch's two sample t-test
 
 ```{r}
-x <- data_imports_t %>% filter(continent == 'Europe')
-y <- data_imports_t %>% filter(continent == 'Asia')
+x <- data_imports_t %>% filter(continent == "Europe")
+y <- data_imports_t %>% filter(continent == "Asia")
 t.test(x$imports, y$imports)
 ```
 
@@ -417,7 +417,7 @@ the change in life expectancy since 1962. The following figure shows this data f
 some of the top growers.
 
 ```{r}
-data_lifeExp <- data %>%
+data_life_exp <- data %>%
     select(`Country Name`, Year, lifeExp) %>%
     drop_na() %>%
     group_by(`Country Name`) %>%
@@ -425,19 +425,22 @@ data_lifeExp <- data %>%
     mutate(lifeExpSince1962 = lifeExp - lifeExp[Year == 1962]) %>%
     ungroup()
 
-countries_highest <- data_lifeExp %>%
+countries_highest <- data_life_exp %>%
     group_by(`Country Name`) %>%
-    mutate(lifeExpTotalChange = lifeExp[Year == 2007] - lifeExp[Year == 1962]) %>%
+    mutate(
+        lifeExpTotalChange = lifeExp[Year == 2007] - lifeExp[Year == 1962]) %>%
     summarise(lifeExpChange = max(lifeExpTotalChange)) %>%
     arrange(desc(lifeExpChange))
 
-cutoff_lifeExpChange <- min(head(countries_highest, n = 10)$lifeExpChange)
+cutoff_life_exp_change <- min(head(countries_highest, n = 10)$lifeExpChange)
 
-data_lifeExpTop <- data_lifeExp %>%
+data_life_exp_top <- data_life_exp %>%
     group_by(`Country Name`) %>%
-    filter(lifeExp[Year == 2007] - lifeExp[Year == 1962] >= cutoff_lifeExpChange)
+    filter(
+        lifeExp[Year == 2007] - lifeExp[Year == 1962] >= cutoff_life_exp_change
+    )
 
-fig <- ggplot(data = data_lifeExpTop) + 
+fig <- ggplot(data = data_life_exp_top) +
     geom_line(mapping = aes(
         x = Year,
         y = lifeExpSince1962,
