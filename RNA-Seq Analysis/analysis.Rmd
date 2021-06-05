@@ -1,0 +1,106 @@
+---
+title: RNA-Seq analysis of <TBD>
+author: Ben Yang
+output:
+    html_document:
+        theme: yeti
+        highlight: pygments
+        code_folding: hide
+        toc: true
+        toc_depth: 2
+        number_sections: true
+        fig_width: 7
+        fig_height: 6
+        df_print: paged
+---
+
+```{r, message=F, warning=F}
+library(SummarizedExperiment)
+library(tidyverse)
+```
+
+# Load data
+
+We use the data in the study with an SRA ID of `SRP007483`. We download the data
+if it does not already exist.
+
+```{r}
+study_sra <- "SRP007483"
+if (!file.exists(file.path(study_sra, "rse_gene.Rdata"))) {
+    library(recount)
+    download_study(study_sra, type = "rse-gene")
+}
+load(file.path(study_sra, "rse_gene.Rdata"))
+```
+
+# Examine data
+
+```{r}
+rse_gene
+```
+
+The class of the `rse_gene` object is `RangedSummarizedExperiment`. This is my
+first peek into object oriented programming within R.
+
+I see the dimensions of our data set. We have 12 columns, one for each sample. A
+sample begins with a three letter prefix of `SRR`. What does this stand for?
+
+The last R stands for [_Run_][1]. It is the data we got out of a sample.
+
+## ENSG
+
+We have 58037 rows. They each start with a four letter prefix of `ENSG`. What
+does this mean?
+
+The row names are [Ensembl stable IDs][2]. The first three letters are `ENS`,
+which tells us that these IDs are for humans. If the ID started with `ENSMUS`,
+then it would mean that they're IDs for mouses. The fourth letter, `G`,
+indicates that we're talking about _genes_, not transcripts or exons or another
+entity.
+
+There are also decimals within the row names. For example, one of the names is
+__`r rownames(head(assays(rse_gene)$counts, 1))`__. What do the numbers after
+the decimal point signify?
+
+The `.14` indicates that this is the 14th version of the gene, [TSPAN6][3].
+
+Why do genes have versions?
+
+Sometimes, we reannotate the genome for a species. If we do, and the set of
+transcripts (RNAs transcripted from the gene) linked to a gene changes, then we
+increment the version.
+
+## Biological conditions
+
+The first six samples are from brains of subjects with Autism. The other six
+samples are from brains of subject without Autism.
+
+```{r, rows.print=12}
+bio_conditions <- colData(rse_gene)[c("run", "characteristics")] %>%
+    as_tibble() %>%
+    unnest(c(characteristics)) %>%
+    separate(
+        characteristics,
+        c("characteristics_key", "characteristics_value"),
+        sep = ": ") %>%
+    pivot_wider(
+        names_from = characteristics_key,
+        values_from = characteristics_value)
+bio_conditions
+```
+
+## Preview of counts
+
+The following is a table of counts, not yet normalized.
+
+```{r}
+counts_tbl <- assay(rse_gene) %>%
+    as.data.frame() %>%
+    rownames_to_column("gene") %>%
+    as_tibble()
+head(counts_tbl)
+```
+
+[1]: https://linsalrob.github.io/ComputationalGenomicsManual/Databases/SRA.html
+[2]: http://useast.ensembl.org/info/genome/stable_ids/index.html
+[3]: http://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=ENSG00000000003;r=X:100627108-100639991
