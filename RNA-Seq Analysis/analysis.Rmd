@@ -45,11 +45,12 @@ first peek into object oriented programming within R.
 I see the dimensions of our data set. We have 12 columns, one for each sample. A
 sample begins with a three letter prefix of `SRR`. What does this stand for?
 
-The last R stands for [_Run_][1]. It is the data we got out of a sample.
+It stands for [_Run_][1]. It is the data we got after running an experiment on a
+sample.
 
 ## ENSG
 
-We have 58037 rows. They each start with a four letter prefix of `ENSG`. What
+We have 58,037 rows. They each start with a four letter prefix of `ENSG`. What
 does this mean?
 
 The row names are [Ensembl stable IDs][2]. The first three letters are `ENS`,
@@ -62,7 +63,8 @@ There are also decimals within the row names. For example, one of the names is
 __`r rownames(head(assays(rse_gene)$counts, 1))`__. What do the numbers after
 the decimal point signify?
 
-The `.14` indicates that this is the 14th version of the gene, [TSPAN6][3].
+The `.14` indicates that this is the 14th version of the gene, which happens to
+be [TSPAN6][3].
 
 Why do genes have versions?
 
@@ -71,9 +73,6 @@ transcripts (RNAs transcripted from the gene) linked to a gene changes, then we
 increment the version.
 
 ## Biological conditions
-
-The first six samples are from brains of subjects with Autism. The other six
-samples are from brains of subject without Autism.
 
 ```{r, rows.print=12}
 bio_conditions <- colData(rse_gene)[c("run", "characteristics")] %>%
@@ -89,9 +88,15 @@ bio_conditions <- colData(rse_gene)[c("run", "characteristics")] %>%
 bio_conditions
 ```
 
+The first six samples are from brains of subjects with Autism. The other six
+samples are from brains of subjects without Autism. Note that the control group
+samples contain only regions `BA09` and `BA41` while the Autism group contains
+those two regions and `BA22`. It is unclear whether this will have a significant
+impact on analysis, but I wanted to point it out.
+
 ## Preview of counts
 
-The following is a table of counts, not yet normalized.
+The following is a table of counts for six genes, not yet normalized.
 
 ```{r}
 counts_tbl <- assay(rse_gene) %>%
@@ -100,6 +105,13 @@ counts_tbl <- assay(rse_gene) %>%
     as_tibble()
 head(counts_tbl)
 ```
+
+There are many more rows, but I only show a few here so that we can get an idea
+of what the count data look like. Each number in the table represents how many
+times we saw a gene in a sample. For example, in the first row of the first
+column, we counted 12,091 instances of the TSPAN6 gene (ID ENSG00000000003.14)
+when we executed the run `SRR309133` on a sample of cells taken from the
+temporal cortex of a brain with Autism.
 
 [1]: https://linsalrob.github.io/ComputationalGenomicsManual/Databases/SRA.html
 [2]: http://useast.ensembl.org/info/genome/stable_ids/index.html
