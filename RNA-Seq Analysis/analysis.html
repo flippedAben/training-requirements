@@ -282,12 +282,14 @@ pre code {
 <ul>
 <li><a href="#ensg"><span class="toc-section-number">2.1</span> ENSG</a></li>
 <li><a href="#biological-conditions"><span class="toc-section-number">2.2</span> Biological conditions</a></li>
-<li><a href="#preview-of-counts"><span class="toc-section-number">2.3</span> Preview of counts</a></li>
+<li><a href="#preview-of-counts-data"><span class="toc-section-number">2.3</span> Preview of counts data</a></li>
+<li><a href="#differential-expression-analysis"><span class="toc-section-number">2.4</span> Differential expression analysis</a></li>
+<li><a href="#helpful-learning-links-accompanied-with-questions"><span class="toc-section-number">2.5</span> Helpful learning links accompanied with questions</a></li>
 </ul></li>
 </ul>
 </div>
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(SummarizedExperiment)</span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(recount)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div>
 <div id="load-data" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Load data</h1>
@@ -343,9 +345,9 @@ pre code {
 </div>
 <p>The first six samples are from brains of subjects with Autism. The other six samples are from brains of subjects without Autism. Note that the control group samples contain only regions <code>BA09</code> and <code>BA41</code> while the Autism group contains those two regions and <code>BA22</code>. It is unclear whether this will have a significant impact on analysis, but I wanted to point it out.</p>
 </div>
-<div id="preview-of-counts" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> Preview of counts</h2>
-<p>The following is a table of counts for six genes, not yet normalized.</p>
+<div id="preview-of-counts-data" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> Preview of counts data</h2>
+<p>The following is a table of <strong>base pair</strong> counts for a small subset of genes.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>counts_tbl <span class="ot">&lt;-</span> <span class="fu">assay</span>(rse_gene) <span class="sc">%&gt;%</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rownames_to_column</span>(<span class="st">&quot;gene&quot;</span>) <span class="sc">%&gt;%</span></span>
@@ -356,7 +358,44 @@ pre code {
 {"columns":[{"label":["gene"],"name":[1],"type":["chr"],"align":["left"]},{"label":["SRR309133"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["SRR309134"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["SRR309135"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["SRR309136"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["SRR309137"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["SRR309138"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["SRR309139"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["SRR309140"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["SRR309141"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["SRR309142"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["SRR309143"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["SRR309144"],"name":[13],"type":["dbl"],"align":["right"]}],"data":[{"1":"ENSG00000000003.14","2":"12091","3":"12331","4":"11229","5":"11565","6":"11489","7":"17901","8":"10615","9":"10618","10":"7198","11":"5963","12":"9492","13":"11419"},{"1":"ENSG00000000005.5","2":"0","3":"0","4":"74","5":"148","6":"90","7":"152","8":"456","9":"350","10":"228","11":"304","12":"349","13":"146"},{"1":"ENSG00000000419.12","2":"8776","3":"8779","4":"15251","5":"14568","6":"11686","7":"15414","8":"21436","9":"19916","10":"29265","11":"27995","12":"23949","13":"25060"},{"1":"ENSG00000000457.13","2":"5718","3":"6814","4":"4625","5":"5397","6":"10601","7":"15365","8":"20169","9":"14877","10":"19123","11":"18723","12":"19972","13":"19989"},{"1":"ENSG00000000460.16","2":"2836","3":"3874","4":"2379","5":"4092","6":"5595","7":"6956","8":"8004","9":"6488","10":"5888","11":"6426","12":"8017","13":"8432"},{"1":"ENSG00000000938.12","2":"2819","3":"1887","4":"4317","5":"4918","6":"13545","7":"18675","8":"9648","9":"9168","10":"4754","11":"5211","12":"3601","13":"3160"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>There are many more rows, but I only show a few here so that we can get an idea of what the count data look like. Each number in the table represents how many times we saw a gene in a sample. For example, in the first row of the first column, we counted 12,091 instances of the TSPAN6 gene (ID ENSG00000000003.14) when we executed the run <code>SRR309133</code> on a sample of cells taken from the temporal cortex of a brain with Autism.</p>
+<p>There are many more rows, but I only show a few here so that we can get an idea of what the counts data look like. Each number in the table represents… TODO: what does the base-pair count represent?</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">assay</span>(<span class="fu">scale_counts</span>(rse_gene)))</span></code></pre></div>
+<pre><code>##                    SRR309133 SRR309134 SRR309135 SRR309136 SRR309137 SRR309138
+## ENSG00000000003.14       278       284       270       271       303       362
+## ENSG00000000005.5          0         0         2         3         2         3
+## ENSG00000000419.12       202       202       367       342       308       312
+## ENSG00000000457.13       131       157       111       127       279       311
+## ENSG00000000460.16        65        89        57        96       147       141
+## ENSG00000000938.12        65        43       104       115       357       378
+##                    SRR309139 SRR309140 SRR309141 SRR309142 SRR309143 SRR309144
+## ENSG00000000003.14       208       217       150       128       199       245
+## ENSG00000000005.5          9         7         5         7         7         3
+## ENSG00000000419.12       421       407       609       599       502       537
+## ENSG00000000457.13       396       304       398       401       418       429
+## ENSG00000000460.16       157       132       123       137       168       181
+## ENSG00000000938.12       189       187        99       111        75        68</code></pre>
+<ul>
+<li>Why do we have matching base pair counts, instead of matching read counts?</li>
+<li>How did we match up reads to genes in the first place?
+<ul>
+<li>Since reads won’t match up completely to genes to due mutations, do we count the number of matching base pairs of the read to the gene?</li>
+<li>What if we matched wrong?</li>
+</ul></li>
+</ul>
+</div>
+<div id="differential-expression-analysis" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> Differential expression analysis</h2>
+</div>
+<div id="helpful-learning-links-accompanied-with-questions" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Helpful learning links accompanied with questions</h2>
+<p><a href="https://systemsbiology.columbia.edu/genome-sequencing-defining-your-experiment">Read length, single vs paired end, depth of coverage</a></p>
+<ul>
+<li>Are <em>fragment</em> and <em>read</em> interchangeable?</li>
+<li>Why do we do paired-end reading when we can just do single-end reading and take the reverse complement of each read? Is it because paired-end reading gives us redundancy, which is important for giving higher quality (i.e. lower error)?</li>
+</ul>
+<p><a href="https://bioc.ism.ac.jp/packages/2.14/bioc/vignettes/DESeq2/inst/doc/beginner.pdf">Beginner’s guide to DESeq2</a></p>
+<p><a href="https://bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html#introduction">RNA-Seq workflow</a></p>
+<p><a href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8">DESeq2 paper</a></p>
 </div>
 </div>
 
