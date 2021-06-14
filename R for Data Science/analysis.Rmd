@@ -7,7 +7,7 @@ output:
         highlight: pygments
         code_folding: hide
         toc: true
-        toc_depth: 2
+        toc_float: true
         number_sections: true
         fig_width: 7
         fig_height: 6
