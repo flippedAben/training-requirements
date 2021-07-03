@@ -1,0 +1,89 @@
+---
+title: RNA-Seq analysis (part 2)
+date: "`r Sys.Date()`"
+author: Ben Yang
+output:
+    rmdformats::robobook:
+        code_folding: hide
+        number_sections: true
+        df_print: paged
+---
+
+```{r, message=F, warning=F}
+library(tidyverse)
+library(DESeq2)
+library(EnhancedVolcano)
+```
+
+# Load DESeq data from last time
+
+Last time, we stored the time consuming results of DESeq analysis into a `Rdata`
+file. Load it back in so we can use it.
+
+```{r}
+load(file.path("./deseq2_output.Rdata"))
+```
+
+# PCA
+
+```{r}
+plotPCA(normalized_de_output, intgroup = c("status", "tissue"))
+```
+
+# Volcano plot
+
+```{r}
+res <- results(de_output)
+```
+
+```{r, fig.height = 8}
+EnhancedVolcano(
+    res,
+    lab = rownames(res),
+    x = "log2FoldChange",
+    y = "pvalue",
+    title = "volcano",
+    pCutoff = 10e-35,
+    FCcutoff = 2.0,
+    pointSize = 2.0,
+    labSize = 4.0,
+    legendPosition = "right",
+)
+```
+
+
+TODO
+- How do I interpret volcano plots?
+- Convert ENSG IDs to real gene names (e.g. TSPAN6).
+
+
+# Heatmap
+
+```{r}
+head(assay(de_output))
+head(assay(normalized_de_output))
+```
+
+```{r}
+res_ordered_by_fc <- na.omit(res[order(res$log2FoldChange), ])
+res_bot_degs <- head(res_ordered_by_fc, n = 20)
+res_top_degs <- tail(res_ordered_by_fc, n = 20)
+res_top_degs <- res_top_degs[order(-res_top_degs$log2FoldChange), ]
+bot_degs <- row.names(res_bot_degs)
+top_degs <- row.names(res_top_degs)
+```
+
+```{r}
+bot_deg_counts <- assay(normalized_de_output)[bot_degs, ]
+bot_deg_counts
+heatmap(bot_deg_counts, Colv = NA)
+```
+Red means high counts. Pale yellow means lower counts.
+
+```{r}
+top_deg_counts <- assay(normalized_de_output)[top_degs, ]
+top_deg_counts
+heatmap(top_deg_counts, Colv = NA)
+```
+
+

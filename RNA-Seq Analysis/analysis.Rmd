@@ -1,6 +1,5 @@
 ---
-title: RNA-Seq analysis of <TBD>
-author: Ben Yang
+title: RNA-Seq analysis
 output:
     html_document:
         theme: yeti
@@ -15,6 +14,7 @@ output:
 ---
 
 ```{r, message=F, warning=F}
+library(DESeq2)
 library(recount)
 library(tidyverse)
 ```
@@ -94,25 +94,118 @@ samples contain only regions `BA09` and `BA41` while the Autism group contains
 those two regions and `BA22`. It is unclear whether this will have a significant
 impact on analysis, but I wanted to point it out.
 
-## Preview of counts data
-
-The following is a table of __base pair__ counts for a small subset of genes.
+Let's put this biological condition data on our dataset.
 
 ```{r}
-counts_tbl <- assay(rse_gene) %>%
+colData(rse_gene)$tissue <- factor(bio_conditions$tissue)
+colData(rse_gene)$status <- factor(bio_conditions$"sample status")
+```
+
+## Preview of counts data
+
+The following is a subset of the `counts` matrix given to us.
+
+```{r}
+bp_counts_tbl <- assay(rse_gene) %>%
     as.data.frame() %>%
     rownames_to_column("gene") %>%
     as_tibble()
-head(counts_tbl)
+head(bp_counts_tbl)
 ```
 
 There are many more rows, but I only show a few here so that we can get an idea
 of what the counts data look like. Each number in the table represents... TODO:
 what does the base-pair count represent?
 
+## Differential expression analysis
+
+DESeq2 takes in a read count matrix. We convert the given base pair count matrix
+to a read count matrix via `scale_counts`. Let's take a look at what this data
+looks like.
+
 ```{r}
-head(assay(scale_counts(rse_gene)))
+rse_gene <- scale_counts(rse_gene)
+head(assay(rse_gene))
 ```
+
+Looks good to me. Let's proceed with differential expression. First, we prep the
+data set that we'll put into analyzer.
+
+```{r}
+de_data <- DESeqDataSet(rse_gene, ~ tissue + status)
+de_data
+```
+
+Then, we run the analysis. Within the [`DESeq2` reference manual][4], there are
+bunches of options we can use, but we'll use the default settings here.
+
+```{r}
+de_output <- DESeq(de_data)
+```
+
+```{r}
+de_output
+```
+
+
+```{r}
+res <- results(de_output)
+```
+
+The analysis opeation took a while on my computer. For that reason, we'll save
+the results of that data onto our drive.
+
+```{r}
+write.csv(as.data.frame(res), file = "condition_control_autism.csv")
+```
+
+```{r}
+normalized_de_output <- rlog(de_output)
+```
+
+
+Save results of operations that took a while to run.
+```{r}
+save(de_output, normalized_de_output, file = "deseq2_output.Rdata")
+```
+
+## Appendix
+
+### Why recount2 publishes base pair counts
+
+#### Confirm that the counts are base pair counts, not read counts
+
+`recount2` gives us a `counts` matrix, but what are they counting? Base pairs?
+Reads? Here is the sum of read counts reported by the SRA.
+```{r}
+reported_read_counts <- colData(rse_gene)["mapped_read_count"]
+reported_read_counts_sum <- sum(reported_read_counts[[1]])
+reported_read_counts_sum
+```
+
+Here is the sum of counts in the `counts` matrix.
+```{r}
+counts_matrix_sum <- sum(assay(rse_gene))
+counts_matrix_sum
+```
+
+It's much higher. There are around 66 times more counts. That's pretty close to
+the average read length of around 75. It would not make sense if the `counts`
+matrix contains read counts. Let's sum up the counts in the `counts` matrix
+after we apply the `scale_counts` function the authors of `recount` recommend we
+use.
+
+```{r}
+total_read_counts <- sum(assay(scale_counts(rse_gene)))
+total_read_counts
+```
+
+This number is much closer. So, we will continue, assuming that the `counts`
+matrix contains base pair counts.
+
+TODO: why is the count still higher?
+
+## Questions
 
 - Why do we have matching base pair counts, instead of matching read counts?
 - How did we match up reads to genes in the first place?
@@ -120,14 +213,10 @@ head(assay(scale_counts(rse_gene)))
       the number of matching base pairs of the read to the gene?
     - What if we matched wrong?
 
-
-## Differential expression analysis
-
-
-
 [1]: https://linsalrob.github.io/ComputationalGenomicsManual/Databases/SRA.html
 [2]: http://useast.ensembl.org/info/genome/stable_ids/index.html
 [3]: http://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=ENSG00000000003;r=X:100627108-100639991
+[4]: https://bioconductor.org/packages/release/bioc/manuals/DESeq2/man/DESeq2.pdf
 
 ## Helpful learning links accompanied with questions
 

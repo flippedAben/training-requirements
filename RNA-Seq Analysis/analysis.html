@@ -283,8 +283,9 @@ pre code {
 <li><a href="#ensg"><span class="toc-section-number">2.1</span> ENSG</a></li>
 <li><a href="#biological-conditions"><span class="toc-section-number">2.2</span> Biological conditions</a></li>
 <li><a href="#preview-of-counts-data"><span class="toc-section-number">2.3</span> Preview of counts data</a></li>
-<li><a href="#differential-expression-analysis"><span class="toc-section-number">2.4</span> Differential expression analysis</a></li>
-<li><a href="#helpful-learning-links-accompanied-with-questions"><span class="toc-section-number">2.5</span> Helpful learning links accompanied with questions</a></li>
+<li><a href="#confirm-that-the-counts-are-base-pair-counts-not-read-counts"><span class="toc-section-number">2.4</span> Confirm that the counts are base pair counts, not read counts</a></li>
+<li><a href="#differential-expression-analysis"><span class="toc-section-number">2.5</span> Differential expression analysis</a></li>
+<li><a href="#helpful-learning-links-accompanied-with-questions"><span class="toc-section-number">2.6</span> Helpful learning links accompanied with questions</a></li>
 </ul></li>
 </ul>
 </div>
@@ -347,19 +348,41 @@ pre code {
 </div>
 <div id="preview-of-counts-data" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Preview of counts data</h2>
-<p>The following is a table of <strong>base pair</strong> counts for a small subset of genes.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>counts_tbl <span class="ot">&lt;-</span> <span class="fu">assay</span>(rse_gene) <span class="sc">%&gt;%</span></span>
+<p>The following is a subset of the <code>counts</code> matrix given to us.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bp_counts_tbl <span class="ot">&lt;-</span> <span class="fu">assay</span>(rse_gene) <span class="sc">%&gt;%</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rownames_to_column</span>(<span class="st">&quot;gene&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_tibble</span>()</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(counts_tbl)</span></code></pre></div>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(bp_counts_tbl)</span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["gene"],"name":[1],"type":["chr"],"align":["left"]},{"label":["SRR309133"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["SRR309134"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["SRR309135"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["SRR309136"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["SRR309137"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["SRR309138"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["SRR309139"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["SRR309140"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["SRR309141"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["SRR309142"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["SRR309143"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["SRR309144"],"name":[13],"type":["dbl"],"align":["right"]}],"data":[{"1":"ENSG00000000003.14","2":"12091","3":"12331","4":"11229","5":"11565","6":"11489","7":"17901","8":"10615","9":"10618","10":"7198","11":"5963","12":"9492","13":"11419"},{"1":"ENSG00000000005.5","2":"0","3":"0","4":"74","5":"148","6":"90","7":"152","8":"456","9":"350","10":"228","11":"304","12":"349","13":"146"},{"1":"ENSG00000000419.12","2":"8776","3":"8779","4":"15251","5":"14568","6":"11686","7":"15414","8":"21436","9":"19916","10":"29265","11":"27995","12":"23949","13":"25060"},{"1":"ENSG00000000457.13","2":"5718","3":"6814","4":"4625","5":"5397","6":"10601","7":"15365","8":"20169","9":"14877","10":"19123","11":"18723","12":"19972","13":"19989"},{"1":"ENSG00000000460.16","2":"2836","3":"3874","4":"2379","5":"4092","6":"5595","7":"6956","8":"8004","9":"6488","10":"5888","11":"6426","12":"8017","13":"8432"},{"1":"ENSG00000000938.12","2":"2819","3":"1887","4":"4317","5":"4918","6":"13545","7":"18675","8":"9648","9":"9168","10":"4754","11":"5211","12":"3601","13":"3160"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>There are many more rows, but I only show a few here so that we can get an idea of what the counts data look like. Each number in the table represents… TODO: what does the base-pair count represent?</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">assay</span>(<span class="fu">scale_counts</span>(rse_gene)))</span></code></pre></div>
+</div>
+<div id="confirm-that-the-counts-are-base-pair-counts-not-read-counts" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> Confirm that the counts are base pair counts, not read counts</h2>
+<p><code>recount2</code> gives us a <code>counts</code> matrix, but what are they counting? Base pairs? Reads? Here is the sum of read counts reported by the SRA.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>reported_read_counts <span class="ot">&lt;-</span> <span class="fu">colData</span>(rse_gene)[<span class="st">&quot;mapped_read_count&quot;</span>]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>reported_read_counts_sum <span class="ot">&lt;-</span> <span class="fu">sum</span>(reported_read_counts[[<span class="dv">1</span>]])</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>reported_read_counts_sum</span></code></pre></div>
+<pre><code>## [1] 297565936</code></pre>
+<p>Here is the sum of counts in the <code>counts</code> matrix.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>counts_matrix_sum <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">assay</span>(rse_gene))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>counts_matrix_sum</span></code></pre></div>
+<pre><code>## [1] 19909826626</code></pre>
+<p>It’s much higher. There are around 66 times more counts. That’s pretty close to the average read length of around 75. It would not make sense if the <code>counts</code> matrix contains read counts. Let’s sum up the counts in the <code>counts</code> matrix after we apply the <code>scale_counts</code> function the authors of <code>recount</code> recommend we use.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>total_read_counts <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">assay</span>(<span class="fu">scale_counts</span>(rse_gene)))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>total_read_counts</span></code></pre></div>
+<pre><code>## [1] 436530038</code></pre>
+<p>This number is much closer. So, we will continue, assuming that the <code>counts</code> matrix contains base pair counts.</p>
+</div>
+<div id="differential-expression-analysis" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Differential expression analysis</h2>
+<p>DESeq2 takes in a read count matrix. We convert the given base pair count matrix to a read count matrix via <code>scale_counts</code>. Let’s take a look at what this data looks like.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>rse_gene <span class="ot">&lt;-</span> <span class="fu">scale_counts</span>(rse_gene)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">assay</span>(rse_gene))</span></code></pre></div>
 <pre><code>##                    SRR309133 SRR309134 SRR309135 SRR309136 SRR309137 SRR309138
 ## ENSG00000000003.14       278       284       270       271       303       362
 ## ENSG00000000005.5          0         0         2         3         2         3
@@ -383,11 +406,8 @@ pre code {
 </ul></li>
 </ul>
 </div>
-<div id="differential-expression-analysis" class="section level2" number="2.4">
-<h2><span class="header-section-number">2.4</span> Differential expression analysis</h2>
-</div>
-<div id="helpful-learning-links-accompanied-with-questions" class="section level2" number="2.5">
-<h2><span class="header-section-number">2.5</span> Helpful learning links accompanied with questions</h2>
+<div id="helpful-learning-links-accompanied-with-questions" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> Helpful learning links accompanied with questions</h2>
 <p><a href="https://systemsbiology.columbia.edu/genome-sequencing-defining-your-experiment">Read length, single vs paired end, depth of coverage</a></p>
 <ul>
 <li>Are <em>fragment</em> and <em>read</em> interchangeable?</li>

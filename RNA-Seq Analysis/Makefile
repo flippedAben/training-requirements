@@ -1,2 +1,2 @@
-analysis.html: analysis.Rmd
-	Rscript -e 'library(rmarkdown); render("./analysis.Rmd")'
+analysis_2.html: analysis_2.Rmd
+	Rscript -e 'library(rmarkdown); render("./$?")'
