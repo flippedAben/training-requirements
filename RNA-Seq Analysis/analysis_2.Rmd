@@ -9,16 +9,18 @@ output:
         df_print: paged
 ---
 
-```{r, message=F, warning=F}
+```{r, message = F, warning = F}
 library(tidyverse)
 library(DESeq2)
 library(EnhancedVolcano)
+library(pheatmap)
 ```
 
 # Load DESeq data from last time
 
-Last time, we stored the time consuming results of DESeq analysis into a `Rdata`
-file. Load it back in so we can use it.
+In part 1, we ran DESeq2's algorithm and stored the results `Rdata` file (it
+took a while to run, so I wanted to save time in the future by storing it).
+Here, we load it in to provide further analysis and visualizations.
 
 ```{r}
 load(file.path("./deseq2_output.Rdata"))
@@ -36,54 +38,157 @@ plotPCA(normalized_de_output, intgroup = c("status", "tissue"))
 res <- results(de_output)
 ```
 
-```{r, fig.height = 8}
+```{r, fig.height = 8, warning = F}
 EnhancedVolcano(
     res,
-    lab = rownames(res),
+    lab = "",
     x = "log2FoldChange",
     y = "pvalue",
-    title = "volcano",
+    title = NULL,
+    subtitle = NULL,
+    xlim = c(-10, 6),
     pCutoff = 10e-35,
     FCcutoff = 2.0,
     pointSize = 2.0,
     labSize = 4.0,
-    legendPosition = "right",
+    legendPosition = "bottom",
+    legendLabels = c(
+        "Insignificant",
+        "Significant in log fold change",
+        "Significant in p-value",
+        "Significant in both"
+    )
 )
 ```
 
 
 TODO
 - How do I interpret volcano plots?
-- Convert ENSG IDs to real gene names (e.g. TSPAN6).
+- Convert ENSG IDs to real gene names (e.g. TSPAN6) on heatmaps and tables
 
 
-# Heatmap
+# Heatmaps
 
-```{r}
-head(assay(de_output))
-head(assay(normalized_de_output))
-```
 
 ```{r}
 res_ordered_by_fc <- na.omit(res[order(res$log2FoldChange), ])
-res_bot_degs <- head(res_ordered_by_fc, n = 20)
-res_top_degs <- tail(res_ordered_by_fc, n = 20)
-res_top_degs <- res_top_degs[order(-res_top_degs$log2FoldChange), ]
-bot_degs <- row.names(res_bot_degs)
-top_degs <- row.names(res_top_degs)
+
+res_overexpr_degs <- head(res_ordered_by_fc, n = 20)
+overexpr_degs <- row.names(res_overexpr_degs)
+
+res_underexpr_degs <- tail(res_ordered_by_fc, n = 20)
+res_underexpr_degs <- res_underexpr_degs[
+    order(-res_underexpr_degs$log2FoldChange), ]
+underexpr_degs <- row.names(res_underexpr_degs)
+
+sample_col <- data.frame(
+    status = rep(c("Autism", "Control"), c(6, 6)),
+    region = rep(
+        c(
+            "BA22 (temporal)",
+            "BA41 (temporal)",
+            "BA09 (frontal)",
+            "BA09 (frontal)",
+            "BA41 (temporal)",
+            "BA41 (temporal)"
+        ),
+        c(2, 2, 2, 2, 2, 2)
+    )
+)
+row.names(sample_col) <- colnames(de_output)
 ```
+
+## Most underexpressed genes
+
+The following is a heatmap showing the 20 genes most underexpressed by the
+Austim group compared to the control group. Note that the value in a cell of the
+heatmap is the _log base 2 fold change_ of the counts of a gene in a run.
 
 ```{r}
-bot_deg_counts <- assay(normalized_de_output)[bot_degs, ]
-bot_deg_counts
-heatmap(bot_deg_counts, Colv = NA)
+underexpr_deg_counts <- assay(normalized_de_output)[underexpr_degs, ]
+pheatmap(underexpr_deg_counts,
+    annotation_col = sample_col,
+)
 ```
-Red means high counts. Pale yellow means lower counts.
+
+In the above heatmap, we did not do any extra normalization. The results of
+DESeq2 are normalized (i.e. values are _log base 2 fold change_ of the counts,
+not counts themselves), and we put those results directly in the heatmap.
+
+In order to make the visualization a bit easier to look at, we'll normalize
+using z-scores in each row of the heatmap. We will not do any "column-wise"
+normalization. This is the resulting heatmap.
 
 ```{r}
-top_deg_counts <- assay(normalized_de_output)[top_degs, ]
-top_deg_counts
-heatmap(top_deg_counts, Colv = NA)
+pheatmap(underexpr_deg_counts,
+    annotation_col = sample_col,
+    scale = "row"
+)
 ```
 
+The result of this normalization is that each row has starker color contrast
+(e.g. rows are not all blue anymore), allowing us to see the changes with ease.
 
+## Most overexpressed genes
+
+This heatmap is similar to the previous one, except we show the 20 most
+overexpressed genes. Again, we normalize by row, not column.
+
+```{r}
+overexpr_deg_counts <- assay(normalized_de_output)[overexpr_degs, ]
+pheatmap(overexpr_deg_counts,
+    annotation_col = sample_col,
+    scale = "row"
+)
+```
+
+# GSEA
+
+```{r}
+library(org.Hs.eg.db)
+```
+
+See how many IDs we lose via taking off the version of the Ensembl ID. We do not
+lose any!
+
+```{r}
+length(row.names(res))
+length(unique(row.names(res)))
+
+ensembl_ids_without_version <- unique(sub("\\.\\d+$", "", row.names(res)))
+length(ensembl_ids_without_version)
+```
+
+See how many IDs we lose via conversion from Ensembl ID to gene symbol.
+
+```{r}
+ens2symbol <- AnnotationDbi::select(
+    org.Hs.eg.db,
+    key = ensembl_ids_without_version,
+    columns = "SYMBOL",
+    keytype = "ENSEMBL"
+)
+length(ens2symbol[[1]]) - length(na.omit(ens2symbol)[[1]])
+```
+
+I lose a lot of IDs: `r length(ens2symbol[[1]]) - length(na.omit(ens2symbol)[[1]])`.
+
+Let's try converting to Entrez ID instead. Gene sets are available for these as
+well. Hopefully, we get less loss.
+
+TODO
+- See how much loss we get from converting to Entrez IDs.
+-  
+
+# Questions
+
+## DESeq2
+
+How does DESeq2 work? Why does it work?
+
+## GSEA
+
+How does GSEA work? Why does it work?
+
+Is it okay to compare against all the gene sets? Is there a downside to this? I
+thought I heard that there was.

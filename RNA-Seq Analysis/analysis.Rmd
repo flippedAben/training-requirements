@@ -1,16 +1,14 @@
 ---
 title: RNA-Seq analysis
+date: "`r Sys.Date()`"
+author: Ben Yang
 output:
-    html_document:
-        theme: yeti
-        highlight: pygments
+    rmdformats::robobook:
         code_folding: hide
-        toc: true
-        toc_depth: 2
         number_sections: true
+        df_print: paged
         fig_width: 7
         fig_height: 6
-        df_print: paged
 ---
 
 ```{r, message=F, warning=F}
@@ -143,21 +141,6 @@ bunches of options we can use, but we'll use the default settings here.
 de_output <- DESeq(de_data)
 ```
 
-```{r}
-de_output
-```
-
-
-```{r}
-res <- results(de_output)
-```
-
-The analysis opeation took a while on my computer. For that reason, we'll save
-the results of that data onto our drive.
-
-```{r}
-write.csv(as.data.frame(res), file = "condition_control_autism.csv")
-```
 
 ```{r}
 normalized_de_output <- rlog(de_output)
